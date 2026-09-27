@@ -1,0 +1,12 @@
+{
+  "package": "com.hoshanot.chabad.watch5",
+  "name": "Hoshanot",
+  "icon": "/common/images/icon.png",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "minAPILevel": 2,
+  "deviceTypeList": ["watch"],
+  "config": {"logLevel": "log","designWidth": 216},
+  "router": {"entry": "pages/index/index","pages": {"pages/index/index": {"component": "index"}}},
+  "display": {"titleBar": false}
+}
