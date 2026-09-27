@@ -1,161 +1,79 @@
 <template>
   <div class="page">
-    <div if="{{!reading}}" class="home">
-      <text class="home-title">תונעשוה</text>
-      <text class="home-sub">ד״בח חסונ</text>
-
-      <list class="menu">
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day1"><text class="menu-text">׳א םוי</text></list-item>
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day2"><text class="menu-text">׳ב םוי</text></list-item>
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day3"><text class="menu-text">׳ג םוי</text></list-item>
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day4"><text class="menu-text">׳ד םוי</text></list-item>
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day5"><text class="menu-text">׳ה םוי</text></list-item>
-        <list-item type="menu" class="menu-item" onclick="openDay" data-day="day6"><text class="menu-text">׳ו םוי</text></list-item>
-        <list-item type="menu" class="menu-item hr" onclick="openDay" data-day="hr"><text class="menu-text">הבר אנעשוה</text></list-item>
-      </list>
+    <div class="header">
+      <text class="title">תונעשוה</text>
+      <text class="subtitle">ד״בח חסונ</text>
     </div>
-
-    <div if="{{reading}}" class="reader">
-      <div class="toolbar">
-        <text class="tool-btn" onclick="goHome">‹</text>
-        <text class="reader-title">{{title}}</text>
-        <text class="speed" onclick="nextSpeed">{{seconds}}s</text>
-        <text class="play" onclick="toggleAuto">{{playing ? 'Ⅱ' : '▶'}}</text>
-      </div>
-
-      <list id="readerList" class="reader-list" bounces="false" onscrollbottom="onBottom">
-        <list-item for="{{images}}" type="pageimg" class="image-item" style="height: {{$item.height}}px;">
-          <image class="scan" src="{{$item.src}}" resize-mode="contain"></image>
-        </list-item>
-        <list-item type="spacer" class="end-item"><text class="end-text">םויס</text></list-item>
-      </list>
-
-      <div class="hint" if="{{showHint}}"><text class="hint-text">הלילג תלחתהל ▶ ץחל</text></div>
-    </div>
+    <list class="menu">
+      <list-item for="{{items}}" class="item" type="menu" onclick="openItem($item.id)">
+        <text class="item-text">{{ $item.title }}</text>
+      </list-item>
+    </list>
   </div>
 </template>
 
 <script>
-const SPEEDS = [2, 3, 4, 5, 7, 10]
+import router from "@system.router"
+import hoshanot from "../../common/hoshanot"
 
 export default {
   private: {
-    reading: false,
-    currentDay: 'day1',
-    title: '׳א םוי',
-    seconds: 4,
-    speedIndex: 2,
-    playing: false,
-    timer: null,
-    images: [],
-    showHint: true,
-    lineHeight: 14
+    items: hoshanot
   },
 
-  onDestroy() {
-    this.stopAuto()
-  },
-
-  openDay(e) {
-    const day = e.target.dataset.day
-    this.currentDay = day
-    this.title = this.titleFor(day)
-    this.images = this.imagesFor(day)
-    this.reading = true
-    this.playing = false
-    this.showHint = true
-  },
-
-  goHome() {
-    this.stopAuto()
-    this.reading = false
-  },
-
-  titleFor(day) {
-    const titles = {
-      day1: '׳א םוי',
-      day2: '׳ב םוי',
-      day3: '׳ג םוי',
-      day4: '׳ד םוי',
-      day5: '׳ה םוי',
-      day6: '׳ו םוי',
-      hr: 'הבר אנעשוה'
-    }
-    return titles[day] || 'תונעשוה'
-  },
-
-  imagesFor(day) {
-    const map = {
-      day1: [{ src: '/common/images/intro_day1.jpg', height: 284 }],
-      day2: [{ src: '/common/images/day2.jpg', height: 123 }],
-      day3: [{ src: '/common/images/day3.jpg', height: 94 }],
-      day4: [{ src: '/common/images/day4.jpg', height: 102 }],
-      day5: [{ src: '/common/images/day5.jpg', height: 127 }],
-      day6: [{ src: '/common/images/day6.jpg', height: 104 }],
-      hr: [
-        { src: '/common/images/hr_start.jpg', height: 115 },
-        { src: '/common/images/hr_cont.jpg', height: 300 }
-      ]
-    }
-    return map[day] || map.day1
-  },
-
-  toggleAuto() {
-    if (this.playing) this.stopAuto()
-    else this.startAuto()
-  },
-
-  startAuto() {
-    if (this.timer) clearInterval(this.timer)
-    this.playing = true
-    this.showHint = false
-    const interval = Math.max(80, Math.round((this.seconds * 1000) / this.lineHeight))
-    this.timer = setInterval(() => {
-      const list = this.$element('readerList')
-      if (list) list.scrollBy({ top: 1, behavior: 'instant' })
-    }, interval)
-  },
-
-  stopAuto() {
-    if (this.timer) {
-      clearInterval(this.timer)
-      this.timer = null
-    }
-    this.playing = false
-  },
-
-  nextSpeed() {
-    this.speedIndex = (this.speedIndex + 1) % SPEEDS.length
-    this.seconds = SPEEDS[this.speedIndex]
-    if (this.playing) this.startAuto()
-  },
-
-  onBottom() {
-    this.stopAuto()
+  openItem(id) {
+    router.push({
+      uri: "/pages/detail",
+      params: { dayId: id }
+    })
   }
 }
 </script>
 
 <style>
-.page { width: 216px; height: 257px; flex-direction: column; background-color: #000000; }
-.home { width: 216px; height: 257px; flex-direction: column; align-items: center; background-color: #000000; }
-.home-title { width: 216px; height: 28px; text-align: center; color: #ffffff; font-size: 24px; font-weight: bold; margin-top: 8px; }
-.home-sub { width: 216px; height: 20px; text-align: center; color: #a9a9a9; font-size: 15px; font-weight: bold; }
-.menu { width: 204px; height: 192px; margin-top: 4px; }
-.menu-item { width: 204px; height: 42px; margin-bottom: 5px; border-radius: 10px; background-color: #1c1c1c; justify-content: center; align-items: center; }
-.menu-item.hr { background-color: #2a2a2a; }
-.menu-text { width: 190px; text-align: center; color: #ffffff; font-size: 20px; font-weight: bold; }
-.reader { width: 216px; height: 257px; flex-direction: column; background-color: #000000; }
-.toolbar { width: 216px; height: 36px; flex-direction: row; align-items: center; background-color: #111111; }
-.tool-btn { width: 34px; height: 34px; text-align: center; color: #ffffff; font-size: 28px; font-weight: bold; }
-.reader-title { width: 96px; text-align: center; color: #ffffff; font-size: 17px; font-weight: bold; }
-.speed { width: 42px; text-align: center; color: #dddddd; font-size: 15px; font-weight: bold; }
-.play { width: 40px; text-align: center; color: #ffffff; font-size: 20px; font-weight: bold; }
-.reader-list { width: 216px; height: 221px; background-color: #ffffff; }
-.image-item { width: 216px; justify-content: center; align-items: center; background-color: #ffffff; }
-.scan { width: 210px; height: 100%; }
-.end-item { width: 216px; height: 80px; justify-content: center; align-items: center; background-color: #ffffff; }
-.end-text { color: #444444; font-size: 18px; font-weight: bold; }
-.hint { position: absolute; left: 23px; top: 204px; width: 170px; height: 35px; border-radius: 10px; background-color: #111111; justify-content: center; align-items: center; }
-.hint-text { color: #ffffff; font-size: 14px; font-weight: bold; }
+.page {
+  flex-direction: column;
+  background-color: #000000;
+}
+
+.header {
+  height: 54px;
+  justify-content: center;
+  align-items: center;
+}
+
+.title {
+  font-size: 25px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #aaaaaa;
+}
+
+.menu {
+  flex: 1;
+  width: 100%;
+}
+
+.item {
+  height: 44px;
+  margin-left: 7px;
+  margin-right: 7px;
+  margin-bottom: 5px;
+  border-radius: 9px;
+  background-color: #181818;
+  justify-content: center;
+  align-items: center;
+}
+
+.item-text {
+  width: 190px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+}
 </style>
