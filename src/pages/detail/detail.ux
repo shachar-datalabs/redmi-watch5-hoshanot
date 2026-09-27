@@ -1,0 +1,172 @@
+<template>
+  <div class="page">
+    <div class="toolbar">
+      <text class="back" onclick="goBack">&lt;</text>
+      <text class="title">{{ title }}</text>
+      <text class="speed" onclick="nextSpeed">{{ seconds }}s</text>
+      <text class="play" onclick="toggleAuto">{{ playing ? "Ⅱ" : "▶" }}</text>
+    </div>
+
+    <list id="reader" class="reader" bounces="false" onscrollbottom="onBottom">
+      <list-item for="{{rows}}" class="row-{{ $item.type }}" type="{{ $item.type }}">
+        <text class="line {{ $item.cls }}">{{ $item.text }}</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import hoshanot from "../../common/hoshanot"
+
+var SPEEDS = [2, 3, 4, 5, 7, 10]
+
+export default {
+  private: {
+    title: "",
+    rows: [],
+    seconds: 4,
+    speedIndex: 2,
+    playing: false,
+    timer: null
+  },
+
+  onInit() {
+    var id = parseInt(this.dayId)
+    for (var i = 0; i < hoshanot.length; i++) {
+      if (hoshanot[i].id === id) {
+        this.title = hoshanot[i].title
+        var out = []
+        for (var j = 0; j < hoshanot[i].lines.length; j++) {
+          var t = hoshanot[i].lines[j]
+          if (t === "") {
+            out.push({ text: " ", type: "blank", cls: "blank" })
+          } else {
+            out.push({ text: t, type: "line", cls: "prayer" })
+          }
+        }
+        this.rows = out
+        break
+      }
+    }
+  },
+
+  onDestroy() {
+    this.stopAuto()
+  },
+
+  goBack() {
+    this.stopAuto()
+    router.back()
+  },
+
+  toggleAuto() {
+    if (this.playing) this.stopAuto()
+    else this.startAuto()
+  },
+
+  startAuto() {
+    if (this.timer) clearInterval(this.timer)
+    this.playing = true
+    var interval = Math.max(100, Math.round((this.seconds * 1000) / 29))
+    this.timer = setInterval(() => {
+      var list = this.$element("reader")
+      if (list) list.scrollBy({ top: 1 })
+    }, interval)
+  },
+
+  stopAuto() {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+    this.playing = false
+  },
+
+  nextSpeed() {
+    this.speedIndex = (this.speedIndex + 1) % SPEEDS.length
+    this.seconds = SPEEDS[this.speedIndex]
+    if (this.playing) this.startAuto()
+  },
+
+  onBottom() {
+    this.stopAuto()
+  }
+}
+</script>
+
+<style>
+.page {
+  flex-direction: column;
+  background-color: #000000;
+}
+
+.toolbar {
+  height: 38px;
+  flex-direction: row;
+  align-items: center;
+  background-color: #101010;
+}
+
+.back {
+  width: 30px;
+  text-align: center;
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.speed {
+  width: 42px;
+  text-align: center;
+  font-size: 15px;
+  color: #dddddd;
+}
+
+.play {
+  width: 38px;
+  text-align: center;
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.reader {
+  flex: 1;
+  width: 100%;
+  background-color: #000000;
+}
+
+.row-line {
+  height: 32px;
+  padding-left: 7px;
+  padding-right: 7px;
+  justify-content: center;
+}
+
+.row-blank {
+  height: 12px;
+}
+
+.line {
+  width: 202px;
+  text-align: right;
+}
+
+.prayer {
+  font-size: 21px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.blank {
+  font-size: 4px;
+  color: #000000;
+}
+</style>
